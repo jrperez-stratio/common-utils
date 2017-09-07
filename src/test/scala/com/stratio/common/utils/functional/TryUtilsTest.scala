@@ -39,4 +39,12 @@ class TryUtilsTest extends FlatSpec with Matchers with Inside{
 
   }
 
+  it should "allow transforming a Seq[Try[A]] of 100000 values into a Success[Seq[A]]" in {
+
+    val seqSuccess = (1 to 100000) map (Success(_))
+    noException shouldBe thrownBy (TryUtils.sequence(seqSuccess))
+
+  }
+
+
 }

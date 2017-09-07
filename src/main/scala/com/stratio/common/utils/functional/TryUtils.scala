@@ -15,16 +15,23 @@
  */
 package com.stratio.common.utils.functional
 
+import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 object TryUtils {
 
   def sequence[T](s: Seq[Try[T]]): Try[Seq[T]] = {
+
+    @tailrec
     def recSequence(s: Seq[Try[T]], acc: Seq[T]): Try[Seq[T]] =
-      s.headOption map {
-        case Failure(cause) => Failure(cause)
-        case Success(v) => recSequence(s.tail, v +: acc)
-      } getOrElse Success(acc reverse)
+      if (s.nonEmpty) {
+        s.head match {
+          case Success(v) => recSequence(s.tail, v +: acc)
+          case Failure(cause) => Failure(cause)
+        }
+      } else {
+        Success(acc reverse)
+      }
     recSequence(s, Seq.empty)
   }
 

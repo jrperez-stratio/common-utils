@@ -2,7 +2,7 @@
 
 Only listing significant user-visible, not internal code cleanups and minor bug fixes.
 
-## 0.11.1 (upcoming)
+## 0.11.1 (September 07, 2017)
 
 * Make "Try.sequence" tail recursive 
 

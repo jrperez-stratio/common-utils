@@ -2,7 +2,7 @@
 
 Only listing significant user-visible, not internal code cleanups and minor bug fixes.
 
-## 0.12.0 (upcoming)
+## 0.12.0 (October 20, 2017)
 
 * Upgrade Curator to 4.0.0
 * Make "Try.sequence" tail recursive 

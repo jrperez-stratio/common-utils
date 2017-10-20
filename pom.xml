@@ -43,7 +43,7 @@
         <junit.version>4.11</junit.version>
         <akka.version>2.5.3</akka.version>
         <json4s.version>3.4.0</json4s.version>
-        <curator.version>3.3.0</curator.version>
+        <curator.version>4.0.0</curator.version>
         <spark.version>2.1.0</spark.version>
         <slf4j.version>1.7.7</slf4j.version>
         <scalaz-version>7.2.1</scalaz-version>

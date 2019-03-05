@@ -6,7 +6,7 @@ Only listing significant user-visible, not internal code cleanups and minor bug 
 
 * Pending changelog
 
-## 0.13.0 (upcoming)
+## 0.13.0 (March 05, 2019)
 
 * Improve Zookeeper connections management
 

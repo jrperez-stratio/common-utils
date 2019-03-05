@@ -37,22 +37,22 @@ class ZookeeperIntegrationTest extends WordSpec
 
   var zkTestServer: TestingServer = _
 
-  def zookeeperStart: Unit = {
+  def zookeeperStart(): Unit = {
     zkTestServer = new TestingServer(ZookeeperTestPort)
     zkTestServer.start()
   }
 
-  def zookeeperStop: Unit = {
+  def zookeeperStop(): Unit = {
     CloseableUtils.closeQuietly(zkTestServer)
     zkTestServer.stop()
   }
 
   override def beforeAll {
-    zookeeperStart
+    zookeeperStart()
   }
 
   override def afterAll {
-    zookeeperStop
+    zookeeperStop()
   }
 
   "A dao component" should {
@@ -70,7 +70,7 @@ class ZookeeperIntegrationTest extends WordSpec
       dao.get("test1") should be(Success(Some(Dummy("newValue"))))
     }
 
-    "upser the dummy in ZK and get it" in {
+    "upsert the dummy in ZK and get it" in {
       dao.upsert("test1", Dummy("newValue"))
       dao.get("test1") should be(Success(Some(Dummy("newValue"))))
       dao.upsert("test1", Dummy("newValue2"))
@@ -94,6 +94,7 @@ class ZookeeperIntegrationTest extends WordSpec
   "A Transaction manager backed by Zookeeper" should {
 
     import com.stratio.common.utils.MultiJVMTestUtils._
+    import scala.language.postfixOps
 
     def sequenceGroups(outputs: Seq[String]): Seq[Seq[Int]] = {
       outputs.map(OutputEntry(_)).zipWithIndex groupBy {
@@ -104,7 +105,7 @@ class ZookeeperIntegrationTest extends WordSpec
     "avoid exclusion zone (over a given resource) process interleaving" in {
 
       val testBatch = (TestBatch() /: (1 to 5)) { (batchToUpdate, n) =>
-        val p = externalProcess(ZKTransactionTestClient)(s"testclient$n", "1", "a", "5", (200+n*10).toString)
+        val p = externalProcess(ZKTransactionTestClient)(s"testclient$n", "1", "a", "5", (200 + n*10).toString)
         batchToUpdate addProcess p
       }
 

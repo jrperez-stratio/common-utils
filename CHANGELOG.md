@@ -4,7 +4,7 @@ Only listing significant user-visible, not internal code cleanups and minor bug 
 
 ## 0.13.0 (upcoming)
 
-* Pending changelog
+* Improve Zookeeper connections management
 
 ## 0.12.0 (October 20, 2017)
 

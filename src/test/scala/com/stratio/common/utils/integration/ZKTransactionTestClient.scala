@@ -47,7 +47,7 @@ object ZKTransactionTestClient extends App {
   val usageMsg =
     "Usage: ZKTransactionTestClient <client_label> <nresources> [resourceid] [<no_segment_parts> <part_duration>]"
 
-  require(args.size > 2, usageMsg)
+  require(args.length > 2, usageMsg)
 
   val Array(
     label,

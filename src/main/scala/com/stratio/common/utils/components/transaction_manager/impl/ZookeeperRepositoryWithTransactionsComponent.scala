@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2015 Stratio (http://stratio.com)
  *
@@ -22,6 +21,8 @@ import com.stratio.common.utils.components.repository.impl.ZookeeperRepositoryCo
 import com.stratio.common.utils.components.transaction_manager.{TransactionManagerComponent, TransactionResource}
 import org.apache.curator.framework.recipes.locks.InterProcessMutex
 
+import scala.collection.mutable
+
 trait ZookeeperRepositoryWithTransactionsComponent extends ZookeeperRepositoryComponent
   with TransactionManagerComponent[String, Array[Byte]] {
 
@@ -35,17 +36,18 @@ trait ZookeeperRepositoryWithTransactionsComponent extends ZookeeperRepositoryCo
 
     private object AcquiredLocks {
 
-      import collection.mutable.Map
-
-      private val path2lock: Map[String, InterProcessMutex] = Map.empty
+      private val path2lock: mutable.Map[String, InterProcessMutex] = mutable.Map.empty[String, InterProcessMutex]
 
       def acquireResource(path: String): Unit =
         path2lock.synchronized {
-          val lock = path2lock.get(path) getOrElse {
-            val newLock = new InterProcessMutex(curatorClient, path)
-            path2lock += (path -> newLock)
-            newLock
-          }
+          val lock = path2lock.getOrElse(
+            key = path,
+            default = {
+              val newLock = new InterProcessMutex(curatorClient, path)
+              path2lock += (path -> newLock)
+              newLock
+            }
+          )
           lock.acquire()
         }
 

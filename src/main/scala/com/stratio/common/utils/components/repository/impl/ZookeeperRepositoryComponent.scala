@@ -15,7 +15,7 @@
  */
 package com.stratio.common.utils.components.repository.impl
 
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 
 import com.stratio.common.utils.components.config.ConfigComponent
 import com.stratio.common.utils.components.logger.LoggerComponent
@@ -48,14 +48,12 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
         .getData
         .forPath(s"/$entity/$id")))
 
-    def getAll(entity: String): Try[Seq[Array[Byte]]] = {
-
+    def getAll(entity: String): Try[Seq[Array[Byte]]] =
       Try(curatorClient
         .getChildren
         .forPath(s"/$entity")).flatMap(entityIds =>
         TryUtils.sequence(entityIds.map(get(entity, _).map(_.get)))
       )
-    }
 
     def getNodes(entity: String): Try[Seq[String]] =
       Try(curatorClient
@@ -110,18 +108,14 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
         .forPath(s"/$entity")
       )
 
-    def getZookeeperConfig: Config = {
+    def getZookeeperConfig: Config =
       config.getConfig(ConfigZookeeper)
-        .getOrElse(throw new ZookeeperRepositoryException(s"Zookeeper config not found"))
-    }
+        .getOrElse(throw ZookeeperRepositoryException(s"Zookeeper config not found"))
 
     def getConfig: Map[String, Any] =
       getZookeeperConfig.toMap
 
-    def start: Boolean =
-      Try(
-        curatorClient.start()
-      ).isSuccess
+    def start: Boolean = Try(curatorClient.start()).isSuccess
 
     def stop: Boolean = ZookeeperRepository.stop(config)
 
@@ -159,11 +153,33 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
 
   private[this] object ZookeeperRepository {
 
-    def getInstance(config: Config): CuratorFramework = synchronized {
+    /**
+      * Aimed to serve its monitor lock. It is safer to use a private instance monitor lock rather
+      * than this's. It prevents dead-locks derived from eternal invocations to `synchronize`
+      */
+    private object lockObject
+
+    def getInstance(config: Config): CuratorFramework = lockObject.synchronized {
       val connectionString = config.getString(ZookeeperConnection, DefaultZookeeperConnection)
-      CuratorFactoryMap.curatorFrameworks.getOrElse(connectionString, {
+      logger.debug(s"Getting Curator Framework Instance for Connection String [$connectionString]")
+      Option(
+        CuratorFactoryMap.curatorFrameworks.get(connectionString).partition { x =>
+          x.getZookeeperClient.isConnected &&
+            x.getZookeeperClient.getZooKeeper.getState.isConnected &&
+            x.getZookeeperClient.getZooKeeper.getState.isAlive
+        }
+      ).flatMap {
+        case (connectedFramework, disconnectedFramework) =>
+          // Assure disconnected framework is closed, if exists
+          disconnectedFramework.foreach { f =>
+            logger.debug(s"Closing disconnected Curator Framework for Connection String [$connectionString]")
+            CloseableUtils.closeQuietly(f)
+          }
+          // Use connected framework, if exists
+          connectedFramework.headOption
+      }.getOrElse {
         Try {
-          CuratorFrameworkFactory.builder()
+          val client = CuratorFrameworkFactory.builder()
             .connectString(connectionString)
             .connectionTimeoutMs(config.getInt(ZookeeperConnectionTimeout, DefaultZookeeperConnectionTimeout))
             .sessionTimeoutMs(config.getInt(ZookeeperSessionTimeout, DefaultZookeeperSessionTimeout))
@@ -172,31 +188,39 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
                 config.getInt(ZookeeperRetryInterval, DefaultZookeeperRetryInterval),
                 config.getInt(ZookeeperRetryAttemps, DefaultZookeeperRetryAttemps)))
             .build()
+          logger.debug(s"Starting Curator Framework for Connection String [$connectionString]")
+          client.start()
+          client.blockUntilConnected(ZookeeperConnectionBlockUntilConnectedIntervalInSeconds, TimeUnit.SECONDS)
+          logger.debug(s"Curator Framework for Connection String [$connectionString] connected")
+          client
         } match {
           case Success(client: CuratorFramework) =>
-            client.start
-            CuratorFactoryMap.curatorFrameworks.putIfAbsent(connectionString, client)
+            CuratorFactoryMap.curatorFrameworks.put(connectionString, client)
             client
           case Failure(_: Throwable) =>
             throw ZookeeperRepositoryException("Error trying to create a new Zookeeper instance")
         }
-      })
+      }
     }
 
-    def stopAll: Boolean =
-      synchronized {
-        Try {
-          CuratorFactoryMap.curatorFrameworks.foreach { case (key, curator) => CloseableUtils.closeQuietly(curator) }
-        }.isSuccess
-      }
+    def stopAll: Boolean = lockObject.synchronized {
+      logger.debug(s"Stopping all Curator Framework Instances")
+      Try {
+        CuratorFactoryMap.curatorFrameworks.foreach {
+          case (connectionString, curator) =>
+            logger.debug(s"Curator Framework Instance for Connection String [$connectionString] stopped")
+            CloseableUtils.closeQuietly(curator)
+        }
+        CuratorFactoryMap.curatorFrameworks.clear()
+      }.isSuccess
+    }
 
-    def stop(config: Config): Boolean = {
-      synchronized {
-        val connectionString = config.getString(ZookeeperConnection, DefaultZookeeperConnection)
-        Try {
-          CloseableUtils.closeQuietly(CuratorFactoryMap.curatorFrameworks.get(connectionString).get)
-        }.isSuccess
-      }
+    def stop(config: Config): Boolean = lockObject.synchronized {
+      val connectionString = config.getString(ZookeeperConnection, DefaultZookeeperConnection)
+      Try {
+        CuratorFactoryMap.curatorFrameworks.remove(connectionString).foreach(CloseableUtils.closeQuietly)
+        logger.debug(s"Curator Framework Instance for Connection String [$connectionString] stopped")
+      }.isSuccess
     }
   }
 
@@ -206,6 +230,7 @@ private[this] object CuratorFactoryMap {
 
   val curatorFrameworks: scala.collection.concurrent.Map[String, CuratorFramework] =
     new ConcurrentHashMap[String, CuratorFramework]()
+
 }
 
 object ZookeeperRepositoryComponent {
@@ -221,6 +246,7 @@ object ZookeeperRepositoryComponent {
   val ZookeeperRetryInterval = "retryInterval"
   val DefaultZookeeperRetryInterval = 10000
   val ConfigZookeeper = "zookeeper"
+  val ZookeeperConnectionBlockUntilConnectedIntervalInSeconds = 15
 }
 
 case class ZookeeperRepositoryException(msg: String) extends Exception(msg)

@@ -29,7 +29,7 @@
 
     <groupId>com.stratio.common</groupId>
     <artifactId>common-utils_2.11</artifactId>
-    <version>0.13.0-SNAPSHOT</version>
+    <version>0.13.0-RC1</version>
     <packaging>jar</packaging>
 
     <name>Stratio Common Utils</name>

@@ -2,7 +2,7 @@
 
 Only listing significant user-visible, not internal code cleanups and minor bug fixes.
 
-## 0.13.1 (upcoming)
+## 0.13.1 (March 29, 2019)
 
 * Upgrade Curator to 4.2.0
 * Upgrade Typesafe Config to 1.3.3

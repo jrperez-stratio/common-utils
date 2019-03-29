@@ -4,7 +4,9 @@ Only listing significant user-visible, not internal code cleanups and minor bug 
 
 ## 0.14.0 (upcoming)
 
-* Pending changelog
+* Upgrade Curator to 4.2.0
+* Upgrade Typesafe Config to 1.3.3
+* Set Curator, Akka and Scalaz dependencies to optional
 
 ## 0.13.0 (March 05, 2019)
 

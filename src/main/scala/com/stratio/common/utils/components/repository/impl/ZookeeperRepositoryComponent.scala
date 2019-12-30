@@ -174,10 +174,10 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
           logger.info(s"zookeeper repository component -> getInstance: $isConnected $stateIsConnected $isAlive")
           ans*/
 
-          x.getZookeeperClient.isConnected &&
+          val ans = x.getZookeeperClient.isConnected &&
             x.getZookeeperClient.getZooKeeper.getState.isConnected &&
             x.getZookeeperClient.getZooKeeper.getState.isAlive
-
+          ans
         }
       ).flatMap {
         case (connectedFramework, disconnectedFramework) =>

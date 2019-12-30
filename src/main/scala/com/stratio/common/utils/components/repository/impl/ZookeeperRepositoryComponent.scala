@@ -177,7 +177,7 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
           val ans = x.getZookeeperClient.isConnected &&
             x.getZookeeperClient.getZooKeeper.getState.isConnected &&
             x.getZookeeperClient.getZooKeeper.getState.isAlive
-          logger.info(s"zookeeper repository component -> getInstance: $ans")
+          println(s"zookeeper repository component -> getInstance: $ans")
           ans
         }
       ).flatMap {

@@ -164,12 +164,13 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
       logger.debug(s"Getting Curator Framework Instance for Connection String [$connectionString]")
       Option(
         CuratorFactoryMap.curatorFrameworks.get(connectionString).partition { x =>
-          val ans = x.getZookeeperClient.isConnected &&
-            x.getZookeeperClient.getZooKeeper.getState.isConnected &&
-            x.getZookeeperClient.getZooKeeper.getState.isAlive
-          logger.info(s"zookeeper repository component -> getInstance: ${x.getZookeeperClient.isConnected} " +
-            s"${x.getZookeeperClient.getZooKeeper.getState.isConnected} " +
-            s"${x.getZookeeperClient.getZooKeeper.getState.isAlive}")
+          val isConnected = x.getZookeeperClient.isConnected
+          val stateIsConnected = x.getZookeeperClient.getZooKeeper.getState.isConnected
+          val isAlive = x.getZookeeperClient.getZooKeeper.getState.isAlive
+
+          val ans = isConnected && stateIsConnected && isAlive
+
+          logger.info(s"zookeeper repository component -> getInstance: $isConnected $stateIsConnected $isAlive")
           ans
         }
       ).flatMap {

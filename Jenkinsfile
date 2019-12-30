@@ -8,7 +8,8 @@ hose {
     FOSS = true
     REPOSITORY = 'common-utils'
     CROSSBUILD = ['scala-2.11']
-    
+    DEPLOYONPRS = true
+    RUN_TESTS = false
     DEV = { config ->
     
         doCompile(conf: config, crossbuild: config.CROSSBUILD[0])

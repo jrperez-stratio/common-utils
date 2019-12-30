@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.stratio.common.utils.components.repository.impl
 
 import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
@@ -164,14 +165,19 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
       logger.debug(s"Getting Curator Framework Instance for Connection String [$connectionString]")
       Option(
         CuratorFactoryMap.curatorFrameworks.get(connectionString).partition { x =>
-          val isConnected = x.getZookeeperClient.isConnected
+          /*val isConnected = x.getZookeeperClient.isConnected
           val stateIsConnected = x.getZookeeperClient.getZooKeeper.getState.isConnected
           val isAlive = x.getZookeeperClient.getZooKeeper.getState.isAlive
 
           val ans = isConnected && stateIsConnected && isAlive
 
           logger.info(s"zookeeper repository component -> getInstance: $isConnected $stateIsConnected $isAlive")
-          ans
+          ans*/
+
+          x.getZookeeperClient.isConnected &&
+            x.getZookeeperClient.getZooKeeper.getState.isConnected &&
+            x.getZookeeperClient.getZooKeeper.getState.isAlive
+
         }
       ).flatMap {
         case (connectedFramework, disconnectedFramework) =>

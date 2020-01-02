@@ -171,17 +171,11 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
       val connectionString = config.getString(ZookeeperConnection, DefaultZookeeperConnection)
       logger.debug(s"Getting Curator Framework Instance for Connection String [$connectionString]")
       Option{
-
-       CuratorFactoryMap.curatorFrameworks.get(connectionString) match {
-          case Some(cur) =>
-            val ans = cur.getZookeeperClient.isConnected &&
-              cur.getZookeeperClient.getZooKeeper.getState.isConnected &&
-              cur.getZookeeperClient.getZooKeeper.getState.isAlive
-            logger.info(s"zookeeper repository component -> getInstance: $ans")
-          case _ =>
-        }
-
-        CuratorFactoryMap.curatorFrameworks.get(connectionString).partition (partitionHandle _)
+        val ans = CuratorFactoryMap.curatorFrameworks.get(connectionString).partition (partitionHandle _)
+        logger.info(s"zookeeper repository component -> getInstance: $ans")
+        logger.warn(s"zookeeper repository component -> getInstance: $ans")
+        logger.debug(s"zookeeper repository component -> getInstance: $ans")
+        ans
       }.flatMap {
         case (connectedFramework, disconnectedFramework) =>
           // Assure disconnected framework is closed, if exists

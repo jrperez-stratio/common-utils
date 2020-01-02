@@ -115,7 +115,7 @@ class ZookeeperIntegrationTest extends WordSpec
 
     }
 
-    "avoid exclusion zone (over overlapping resources sets) process inverleaving" in {
+    /*"avoid exclusion zone (over overlapping resources sets) process inverleaving" in {
 
       val testBatch = TestBatch() addProcess {
         externalProcess(ZKTransactionTestClient)("testclient1", "3", "a", "b", "c", "10", "300")
@@ -129,9 +129,9 @@ class ZookeeperIntegrationTest extends WordSpec
         group should contain theSameElementsInOrderAs (group.min until (group.min + group.size))
       }
 
-    }
+    }*/
 
-    "avoid process interleaving for intersecting resources while allowing interleaving for non-intersecting" in {
+    /*"avoid process interleaving for intersecting resources while allowing interleaving for non-intersecting" in {
 
       val testBatch = TestBatch() addProcess {
         externalProcess(ZKTransactionTestClient)("testclient1", "2", "a", "b", "10", "100")
@@ -155,7 +155,7 @@ class ZookeeperIntegrationTest extends WordSpec
         group should contain theSameElementsInOrderAs (group.min until (group.min + group.size))
       }
       
-    }
+    }*/
 
 
   }

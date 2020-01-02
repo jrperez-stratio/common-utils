@@ -164,8 +164,8 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
       val ans = curator.getZookeeperClient.isConnected &&
         curator.getZookeeperClient.getZooKeeper.getState.isConnected &&
         curator.getZookeeperClient.getZooKeeper.getState.isAlive
-
-      println(s"zookeeper repository component -> getInstance: $ans")
+      val str = ans.toString
+      println(s"zookeeper repository component -> getInstance: $str")
       ans
     }
 

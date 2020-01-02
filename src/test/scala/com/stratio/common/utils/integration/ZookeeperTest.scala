@@ -102,7 +102,7 @@ class ZookeeperIntegrationTest extends WordSpec
       } values
     }.toSeq.map(_.map(_._2))
 
-    "avoid exclusion zone (over a given resource) process interleaving" in {
+    /*"avoid exclusion zone (over a given resource) process interleaving" in {
 
       val testBatch = (TestBatch() /: (1 to 5)) { (batchToUpdate, n) =>
         val p = externalProcess(ZKTransactionTestClient)(s"testclient$n", "1", "a", "5", (200 + n*10).toString)
@@ -113,7 +113,7 @@ class ZookeeperIntegrationTest extends WordSpec
         group should contain theSameElementsInOrderAs (group.min until (group.min + group.size))
       }
 
-    }
+    }*/
 
     /*"avoid exclusion zone (over overlapping resources sets) process inverleaving" in {
 

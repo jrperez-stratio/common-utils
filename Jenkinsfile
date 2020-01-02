@@ -2,26 +2,22 @@
 
 hose {
     EMAIL = 'qa'
-    MODULE = 'common-utils'
     DEVTIMEOUT = 30
     RELEASETIMEOUT = 30
-    FOSS = true
-    REPOSITORY = 'common-utils'
-    CROSSBUILD = ['scala-2.11']
     DEPLOYONPRS = true
     RUN_TESTS = false
     DEV = { config ->
     
-        doCompile(conf: config, crossbuild: config.CROSSBUILD[0])
-        doUT(conf: config, crossbuild: config.CROSSBUILD[0])
-        doPackage(conf: config, crossbuild: config.CROSSBUILD[0])
+        doCompile(conf: config)
+        doUT(conf: config)
+        doPackage(conf: config)
 
         parallel(DOC: {
-            doDoc(conf: config, crossbuild: config.CROSSBUILD[0])
+            doDoc(conf: config)
         }, QC: {
-            doStaticAnalysis(conf: config, crossbuild: config.CROSSBUILD[0])
+            doStaticAnalysis(conf: config)
         }, DEPLOY: {
-            doDeploy(conf: config, crossbuild: config.CROSSBUILD[0])
+            doDeploy(conf: config)
         }, failFast: config.FAILFAST)
 
     }

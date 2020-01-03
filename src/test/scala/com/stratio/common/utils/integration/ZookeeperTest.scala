@@ -60,7 +60,7 @@ class ZookeeperIntegrationTest extends WordSpec
     val component = new DummyZookeeperDAOComponent
     import component.dao
 
-    "save a dummy in ZK and get it" in {
+    /*"save a dummy in ZK and get it" in {
       dao.create("test1", Dummy("value"))
       dao.get("test1") should be(Success(Some(Dummy("value"))))
     }
@@ -88,7 +88,7 @@ class ZookeeperIntegrationTest extends WordSpec
       dao.deleteAll
       dao.exists("test1") should be (Success(false))
       dao.count() shouldBe a[Failure[_]]
-    }
+    }*/
   }
 
   "A Transaction manager backed by Zookeeper" should {

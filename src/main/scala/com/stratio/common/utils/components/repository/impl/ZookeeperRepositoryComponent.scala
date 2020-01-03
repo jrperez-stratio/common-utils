@@ -168,6 +168,7 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
 
 
     def getInstance(config: Config): CuratorFramework = lockObject.synchronized {
+      logger.info(s"enter getInstance")
       val connectionString = config.getString(ZookeeperConnection, DefaultZookeeperConnection)
       logger.debug(s"Getting Curator Framework Instance for Connection String [$connectionString]")
       Option{

@@ -32,6 +32,7 @@ import scala.collection.JavaConversions._
 import scala.util.{Failure, Success, Try}
 import com.stratio.common.utils.components.repository.impl.ZookeeperRepositoryComponent._
 import com.stratio.common.utils.functional.TryUtils
+import org.apache.curator.framework.state.{ConnectionState, ConnectionStateListener}
 
 
 trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byte]] {
@@ -168,10 +169,45 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
       isConnected && stateIsConnected && isAlive
     }
 
+    def buildClient(connectionString: String): CuratorFramework = {
+      val client = CuratorFrameworkFactory.builder()
+        .connectString(connectionString)
+        .connectionTimeoutMs(config.getInt(ZookeeperConnectionTimeout, DefaultZookeeperConnectionTimeout))
+        .sessionTimeoutMs(config.getInt(ZookeeperSessionTimeout, DefaultZookeeperSessionTimeout))
+        .retryPolicy(
+          new ExponentialBackoffRetry(
+            config.getInt(ZookeeperRetryInterval, DefaultZookeeperRetryInterval),
+            config.getInt(ZookeeperRetryAttemps, DefaultZookeeperRetryAttemps)))
+        .build()
+
+      client.start()
+      client.blockUntilConnected(ZookeeperConnectionBlockUntilConnectedIntervalInSeconds, TimeUnit.SECONDS)
+
+      client.getConnectionStateListenable.addListener(
+        new ConnectionStateListener() {
+          override def stateChanged(client: CuratorFramework, newState: ConnectionState): Unit = {
+            if (newState == ConnectionState.RECONNECTED) {
+               buildClient(connectionString)
+               client.getConnectionStateListenable.removeListener(this)
+            }
+          }
+        }
+      )
+
+      CuratorFactoryMap.curatorFrameworks.put(connectionString, client)
+      client
+    }
 
     def getInstance(config: Config): CuratorFramework = lockObject.synchronized {
       val connectionString = config.getString(ZookeeperConnection, DefaultZookeeperConnection)
-      logger.debug(s"Getting Curator Framework Instance for Connection String [$connectionString]")
+
+      CuratorFactoryMap.curatorFrameworks.get(connectionString) match {
+        case Some(cf) => cf
+        case _ =>  buildClient(connectionString)
+      }
+
+
+      /*logger.debug(s"Getting Curator Framework Instance for Connection String [$connectionString]")
       Option{
         CuratorFactoryMap.curatorFrameworks.get(connectionString).partition (partitionHandle _)
       }.flatMap {
@@ -198,6 +234,19 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
           client.start()
           client.blockUntilConnected(ZookeeperConnectionBlockUntilConnectedIntervalInSeconds, TimeUnit.SECONDS)
           logger.debug(s"Curator Framework for Connection String [$connectionString] connected")
+
+          //Add listener
+          client.getConnectionStateListenable.addListener(
+            new ConnectionStateListener() {
+              override def stateChanged(client: CuratorFramework, newState: ConnectionState): Unit = {
+                if (newState == ConnectionState.RECONNECTED) {
+                  logger.info(s"curator client reconnected")
+
+                }
+              }
+            }
+          )
+
           client
         } match {
           case Success(client: CuratorFramework) =>
@@ -206,7 +255,7 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
           case Failure(_: Throwable) =>
             throw ZookeeperRepositoryException("Error trying to create a new Zookeeper instance")
         }
-      }
+      }*/
     }
 
     def stopAll: Boolean = lockObject.synchronized {

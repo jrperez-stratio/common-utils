@@ -161,23 +161,19 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
     private object lockObject
 
     def partitionHandle(curator: CuratorFramework): Boolean = {
-      curator.getZookeeperClient.isConnected &&
-      curator.getZookeeperClient.getZooKeeper.getState.isConnected &&
-      curator.getZookeeperClient.getZooKeeper.getState.isAlive
+      val isConnected = curator.getZookeeperClient.isConnected
+      val stateIsConnected = curator.getZookeeperClient.getZooKeeper.getState.isConnected
+      val isAlive = curator.getZookeeperClient.getZooKeeper.getState.isAlive
+      logger.info(s"zookeeper repository component -> getInstance: $isConnected $stateIsConnected $isAlive")
+      isConnected && stateIsConnected && isAlive
     }
 
 
     def getInstance(config: Config): CuratorFramework = lockObject.synchronized {
-      throw new Exception()
-      logger.info(s"enter getInstance")
       val connectionString = config.getString(ZookeeperConnection, DefaultZookeeperConnection)
       logger.debug(s"Getting Curator Framework Instance for Connection String [$connectionString]")
       Option{
-        val ans = CuratorFactoryMap.curatorFrameworks.get(connectionString).partition (partitionHandle _)
-        logger.info(s"zookeeper repository component -> getInstance: $ans")
-        logger.warn(s"zookeeper repository component -> getInstance: $ans")
-        logger.debug(s"zookeeper repository component -> getInstance: $ans")
-        ans
+        CuratorFactoryMap.curatorFrameworks.get(connectionString).partition (partitionHandle _)
       }.flatMap {
         case (connectedFramework, disconnectedFramework) =>
           // Assure disconnected framework is closed, if exists

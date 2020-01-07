@@ -170,7 +170,7 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
     }
 
     def buildClient(connectionString: String): CuratorFramework = {
-      val client = CuratorFrameworkFactory.builder()
+      /*val client = CuratorFrameworkFactory.builder()
         .connectString(connectionString)
         .connectionTimeoutMs(config.getInt(ZookeeperConnectionTimeout, DefaultZookeeperConnectionTimeout))
         .sessionTimeoutMs(config.getInt(ZookeeperSessionTimeout, DefaultZookeeperSessionTimeout))
@@ -178,7 +178,15 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
           new ExponentialBackoffRetry(
             config.getInt(ZookeeperRetryInterval, DefaultZookeeperRetryInterval),
             config.getInt(ZookeeperRetryAttemps, DefaultZookeeperRetryAttemps)))
-        .build()
+        .build()*/
+
+      val client = CuratorFrameworkFactory.newClient(
+        connectionString/*sdConfig.url*/,
+        config.getInt(ZookeeperSessionTimeout, DefaultZookeeperSessionTimeout) /*sdConfig.sessionTimeout*/,
+        config.getInt(ZookeeperConnectionTimeout, DefaultZookeeperConnectionTimeout)/*sdConfig.connectionTimeout*/,
+        new ExponentialBackoffRetry(
+          config.getInt(ZookeeperRetryInterval, DefaultZookeeperRetryInterval),
+          config.getInt(ZookeeperRetryAttemps, DefaultZookeeperRetryAttemps)))
 
       client.start()
       client.blockUntilConnected(ZookeeperConnectionBlockUntilConnectedIntervalInSeconds, TimeUnit.SECONDS)

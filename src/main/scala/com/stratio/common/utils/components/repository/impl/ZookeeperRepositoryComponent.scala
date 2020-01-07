@@ -198,6 +198,7 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
                logger.info(s"Reconnected zookeeper repository curator client")
                buildClient(connectionString)
                client.getConnectionStateListenable.removeListener(this)
+              client.close()
             }
           }
         }

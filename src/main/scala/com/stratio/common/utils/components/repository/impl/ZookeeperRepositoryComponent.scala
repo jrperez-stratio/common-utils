@@ -187,6 +187,7 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
         new ConnectionStateListener() {
           override def stateChanged(client: CuratorFramework, newState: ConnectionState): Unit = {
             if (newState == ConnectionState.RECONNECTED) {
+               logger.info(s"Reconnected zookeeper repository curator client")
                buildClient(connectionString)
                client.getConnectionStateListenable.removeListener(this)
             }
@@ -195,6 +196,7 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
       )
 
       CuratorFactoryMap.curatorFrameworks.put(connectionString, client)
+      logger.info(s"New zookeeper repository curator client")
       client
     }
 

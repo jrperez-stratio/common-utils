@@ -191,7 +191,7 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
       client.start()
       client.blockUntilConnected(ZookeeperConnectionBlockUntilConnectedIntervalInSeconds, TimeUnit.SECONDS)
 
-      client.getConnectionStateListenable.addListener(
+      /*client.getConnectionStateListenable.addListener(
         new ConnectionStateListener() {
           override def stateChanged(client: CuratorFramework, newState: ConnectionState): Unit = {
             if (newState == ConnectionState.RECONNECTED) {
@@ -202,19 +202,23 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
             }
           }
         }
-      )
+      )*/
 
       CuratorFactoryMap.curatorFrameworks.put(connectionString, client)
       logger.info(s"New zookeeper repository curator client")
       client
     }
-
     def getInstance(config: Config): CuratorFramework = lockObject.synchronized {
       val connectionString = config.getString(ZookeeperConnection, DefaultZookeeperConnection)
 
       CuratorFactoryMap.curatorFrameworks.get(connectionString) match {
-        case Some(cf) => cf
-        case _ =>  buildClient(connectionString)
+        case Some(cf) =>
+          cf.close()
+          val client = buildClient(connectionString)
+          client
+        case _ =>
+          val client = buildClient(connectionString)
+          client
       }
 
 

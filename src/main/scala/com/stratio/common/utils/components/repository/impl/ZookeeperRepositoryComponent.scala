@@ -210,7 +210,7 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
     }
     def getInstance(config: Config): CuratorFramework = lockObject.synchronized {
       val connectionString = config.getString(ZookeeperConnection, DefaultZookeeperConnection)
-
+      logger.info("zookeeper repository component -> new client created")
       CuratorFactoryMap.curatorFrameworks.get(connectionString) match {
         case Some(cf) =>
           cf.close()

@@ -196,30 +196,39 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
           override def stateChanged(client: CuratorFramework, newState: ConnectionState): Unit = {
             if (newState == ConnectionState.RECONNECTED) {
                logger.info(s"Reconnected zookeeper repository curator client")
-               buildClient(connectionString)
                client.getConnectionStateListenable.removeListener(this)
-              client.close()
+               client.close()
+               buildClient(connectionString)
             }
           }
         }
       )
 
-      CuratorFactoryMap.curatorFrameworks.put(connectionString, client)
+      /*CuratorFactoryMap.curatorFrameworks.put(connectionString, client)
       logger.info(s"New zookeeper repository curator client")
-      client
+      client*/
+
+      curClient = Some(client)
+      curClient.get
     }
+
+    var curClient: Option[CuratorFramework] = None
+
     def getInstance(config: Config): CuratorFramework = lockObject.synchronized {
       val connectionString = config.getString(ZookeeperConnection, DefaultZookeeperConnection)
       logger.info("zookeeper repository component -> new client created")
-      CuratorFactoryMap.curatorFrameworks.get(connectionString) match {
+
+      /*CuratorFactoryMap.curatorFrameworks.get(connectionString) match {
         case Some(cf) =>
-          /*cf.close()
-          val client = buildClient(connectionString)
-          client*/
           cf
         case _ =>
           val client = buildClient(connectionString)
           client
+      }*/
+
+      curClient match {
+        case Some(cc) => cc
+        case _ => buildClient(connectionString)
       }
 
 

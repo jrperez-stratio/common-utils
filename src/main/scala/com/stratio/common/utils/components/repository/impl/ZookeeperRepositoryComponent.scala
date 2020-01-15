@@ -207,7 +207,7 @@ trait ZookeeperRepositoryComponent extends RepositoryComponent[String, Array[Byt
       /*CuratorFactoryMap.curatorFrameworks.put(connectionString, client)
       logger.info(s"New zookeeper repository curator client")
       client*/
-
+      logger.info("Curator Client created successfully <-")
       curClient = Some(client)
       curClient.get
     }
